@@ -23,25 +23,10 @@ class user(models.Model):
         max_length=256, null=False)
     email = models.EmailField(
         max_length=70, blank=True, default=None, null=False, unique=True)
-    id_num = models.CharField(
-        max_length=256, null=False, default=None, unique=True)
     phone_number = models.CharField(
         max_length=256, null=False, default=None, unique=True)
-    date_of_birth = models.DateField(blank=True, null=True)
-    address = models.TextField(null=True, default=None)
-    username = models.CharField(
-        max_length=256, null=True, default=None, unique=True)
-    gender = models.CharField(max_length=256, null=False)
-    country = models.CharField(
-        max_length=256, blank=True, null=True, default=None)
-    city = models.CharField(max_length=256, blank=True,
-                            null=True, default=None)
-    province = models.CharField(
-        max_length=256, blank=True, null=True, default=None)
-    area = models.CharField(max_length=256, blank=True,
-                            null=True, default=None)
-
     password = models.CharField(max_length=256,  null=False)
+
     created_on = models.DateTimeField(auto_now_add=True, null=True)
     created_by = models.IntegerField(null=True, default=None)
     updated_on = models.DateTimeField(auto_now=True, null=True)
@@ -51,7 +36,7 @@ class user(models.Model):
     deleted_on = models.DateTimeField(auto_now_add=True, null=True)
     deleted_by = models.IntegerField(null=True, default=None)
     image = models.CharField(max_length=256,  null=True, default='')
-    otp = models.IntegerField(null=True, default=None)
+    otp = models.CharField(max_length=256,  null=True, default='')
 
     def __str__(self):
         return self.full_name

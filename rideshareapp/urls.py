@@ -7,11 +7,17 @@ from rest_framework import routers
 from .views import *
 
 # define the router
-router = routers.DefaultRouter()
+router = routers.SimpleRouter()
 
 # define the router path and viewset to be used
-router.register(r'register', userregister)
+router.register(r'resentotp', resentotp)
+router.register(r'verifyotp', verifyotp)
+router.register(r'signup', userregister)
 router.register(r'fileupload', upload_image)
+router.register(r'login', login)
+router.register(r'forgetpassword', forgetpassword)
+router.register(r'getuser', usergetbyid)
+
 # specify URL Path for rest_framework
 urlpatterns = [
     path('', include(router.urls)),

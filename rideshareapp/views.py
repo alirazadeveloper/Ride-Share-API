@@ -1,3 +1,6 @@
+import io
+from rest_framework.renderers import JSONRenderer
+from django.shortcuts import get_object_or_404
 from rest_framework.parsers import MultiPartParser
 from django.utils import timezone
 from rest_framework import viewsets
@@ -61,48 +64,32 @@ class userregister(viewsets.ModelViewSet):
             User_registerdata = JSONParser().parse(request)
         except Exception as e:
             return Response(sentresponse("false", e.args[0], "").response())
-
         try:
-            Phone_number = user.objects.filter(
+            Phone_number = self.queryset.filter(
                 phone_number=User_registerdata["phone_number"]
             )
         except Exception as e:
             return Response(sentresponse("false", "invalid key", "").response())
-
         if len(Phone_number) > 0:
-            if Phone_number[0].is_verfied == True:
-                return Response(sentresponse("false", "user already registered", "").response())
             return Response(sentresponse("false", "phone number already registered", "").response())
-
         try:
-            Email = user.objects.filter(
+            Email = self.queryset.filter(
                 email=User_registerdata["email"]
             )
         except Exception as e:
             return Response(sentresponse("false", "invalid key", "").response())
         if len(Email) > 0:
             return Response(sentresponse("false", "email already registered", "").response())
-
         try:
-            Id_num = user.objects.filter(
-                id_num=User_registerdata["id_num"]
-            )
-        except Exception as e:
-            return Response(sentresponse("false", "invalid key", "").response())
-
-        if len(Id_num) > 0:
-            return Response(sentresponse("false", "id num already registered", "").response())
-
-        try:
-            User_registerserializer = user_registerSerilizer(
+            User_registerserializer = self.serializer_class(
                 data=User_registerdata)
             if User_registerserializer.is_valid():
                 otp = otpgen()
                 User_registerserializer.save(otp=otp)
-                User = user.objects.filter(
-                    email=User_registerdata["email"])
+                # to = User_registerdata["phone_number"]
+                # sentotp(to, otp)
                 return Response(sentresponse("true", "please verify otp", {
-                    "email": User[0].email,
+                    "phone_number": User_registerdata["phone_number"],
                     "otp": f"{otp}"
                 }).response())
             else:
@@ -126,7 +113,7 @@ class upload_image(viewsets.ModelViewSet):
             file = request.FILES.get('file_uploaded')
         except Exception as e:
             return Response(sentresponse("false", e.args[0], "").response())
-        file_serializer = imageSerializer(data=request.data)
+        file_serializer = self.serializer_class(data=request.data)
 
         if file_serializer.is_valid():
             file_serializer.save()
@@ -140,3 +127,176 @@ class upload_image(viewsets.ModelViewSet):
             }).response())
         else:
             return Response(sentresponse("false", file_serializer.error_messages, "").response())
+
+
+# verify otp views
+
+
+class verifyotp(viewsets.ModelViewSet):
+    http_method_names = ['post']
+    permission_classes = [AllowAny, ]
+    queryset = user.objects.all()
+    serializer_class = verifyotpSerilizer
+
+    def create(self, request):
+        try:
+            User_registerdata = JSONParser().parse(request)
+        except Exception as e:
+            return Response(sentresponse("false", e.args[0], "").response())
+        User = self.queryset.filter(
+            phone_number=User_registerdata["phone_number"])
+        if len(User) > 0:
+            if User[0].is_verfied == True:
+                return Response(sentresponse("false", "user already verified", "").response())
+            if str(User[0].otp) == str(User_registerdata['otp']):
+                User[0].is_verfied = True
+                User[0].save()
+                return Response(sentresponse("true", "user registered successfully", "").response())
+            else:
+                return Response(sentresponse("false", "invalid otp", "").response())
+        else:
+            return Response(sentresponse("false", "invalid phone number", "").response())
+
+
+# re-sent otp views
+
+
+class resentotp(viewsets.ModelViewSet):
+    http_method_names = ['post']
+    permission_classes = [AllowAny, ]
+    queryset = user.objects.all()
+    serializer_class = resentotpSerilizer
+
+    def create(self, request):
+        try:
+            resentotp_data = JSONParser().parse(request)
+        except Exception as e:
+            return Response(sentresponse("false", e.args[0], "").response())
+        try:
+            User = self.queryset.filter(
+                phone_number=resentotp_data['phone_number']
+            )
+        except Exception as e:
+            return Response(sentresponse("false", e.args[0], "").response())
+        if len(User) > 0:
+            otp = otpgen()
+            User[0].otp = otp
+            User[0].save()
+            # to = User[0].phone_number
+            # sentotp(to, otp)
+            return Response(sentresponse("true", "success", {
+                "otp": f"{otp}"
+            }).response())
+        else:
+            return Response(sentresponse("false", "invalid phone number", "").response())
+
+
+# login views
+
+
+class login(viewsets.ModelViewSet):
+    http_method_names = ['post']
+    permission_classes = [AllowAny, ]
+    queryset = user.objects.all()
+    serializer_class = loginSerilizer
+
+    def create(self, request):
+        try:
+            User_logindata = JSONParser().parse(request)
+        except Exception as e:
+            return Response(sentresponse("false", e.args[0], "").response())
+
+        User = self.queryset.filter(
+            email=User_logindata["email"])
+        if len(User) == 0:
+            return Response(sentresponse("false", "invalid email", "").response())
+        Password = self.queryset.filter(
+            password=User_logindata["password"])
+
+        if len(Password) == 0:
+            return Response(sentresponse("false", "invalid password", "").response())
+        auth_token, exp = generate_access_token(User[0])
+        try:
+            token.objects.create(
+                user_id=User[0].id, token=auth_token, expire_on=exp)
+        except Exception as e:
+            return Response(sentresponse("false", e.args[0], "").response())
+
+        return Response({
+            "status": "true",
+            "message": "login successfully",
+            'data': {
+                "access_token": auth_token
+            }
+        })
+
+# forget password views
+
+
+class forgetpassword(viewsets.ModelViewSet):
+    http_method_names = ['post']
+    permission_classes = [Is_User, ]
+    queryset = user.objects.all()
+    serializer_class = forgetpassSerilizer
+
+    def create(self, request):
+        try:
+            passwordreset_data = JSONParser().parse(request)
+        except Exception as e:
+            return Response(sentresponse("false", e.args[0], "").response())
+        try:
+            User = self.queryset.filter(
+                phone_number=passwordreset_data['phone_number']
+            )
+        except Exception as e:
+            return Response(sentresponse("false", e.args[0], "").response())
+        if len(User) > 0:
+            # to = User[0].phone_number
+            # sentotp(to, otp)
+            User[0].password = passwordreset_data['new_password']
+            User[0].save()
+            return Response(sentresponse("true", "password updated", "").response())
+        else:
+            return Response(sentresponse("false", "invalid phone number", "").response())
+
+
+# user get by id views
+
+
+class usergetbyid(viewsets.ModelViewSet):
+    http_method_names = ['get']
+    permission_classes = [Is_User, ]
+    queryset = user.objects.all()
+    serializer_class = user_registerSerilizer
+
+    def list(self, request):
+        serializer = self.serializer_class(self.queryset, many=True)
+        data = JSONRenderer().render(serializer.data)
+        data = JSONParser().parse(io.BytesIO(data))
+        res_list = []
+        for res in data:
+            if res["image"]:
+                res["image"] = "http://" +\
+                    str(request.get_host())+"/media/"+str(res["image"])
+                res_list.append(res)
+            else:
+                res["image"] = ""
+                res_list.append(res)
+        return Response(sentresponse("true", "success", res_list).response())
+
+    def retrieve(self, request, pk=None):
+        try:
+            user = get_object_or_404(self.queryset, pk=pk)
+        except:
+            return Response(sentresponse("false", "invalid id", "").response())
+        if user.is_deleted == True:
+            return Response(sentresponse("false", "invalid id", "").response())
+        serializer = self.serializer_class(user)
+        data = JSONRenderer().render(serializer.data)
+        data = JSONParser().parse(io.BytesIO(data))
+        if data["image"]:
+            data["image"] = "http://" +\
+                str(request.get_host())+"/media/"+data["image"]
+        else:
+            data["image"] = ""
+        return Response(sentresponse("true", "success", data).response())
