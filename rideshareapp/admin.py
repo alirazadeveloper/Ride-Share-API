@@ -15,5 +15,5 @@ admin.site.register(
     token
 )
 admin.site.register(
-    Image
+    fileupload
 )

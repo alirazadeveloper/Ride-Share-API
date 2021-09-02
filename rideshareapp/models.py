@@ -1,8 +1,11 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 
 # Create your models here.
 import uuid
 import os
+
+from django.db.models.fields.files import FileField
 from .auth import generate_access_token
 # Create your models here.
 
@@ -26,6 +29,10 @@ class user(models.Model):
     phone_number = models.CharField(
         max_length=256, null=False, default=None, unique=True)
     password = models.CharField(max_length=256,  null=False)
+    eduction = models.CharField(
+        max_length=256, null=True, default='')
+    job_info = models.CharField(
+        max_length=256, null=True, default='')
 
     created_on = models.DateTimeField(auto_now_add=True, null=True)
     created_by = models.IntegerField(null=True, default=None)
@@ -33,6 +40,7 @@ class user(models.Model):
     updated_by = models.IntegerField(null=True, default=None)
     is_deleted = models.BooleanField(null=True, default=False)
     is_verfied = models.BooleanField(null=True, default=False)
+    is_approved = models.BooleanField(null=True, default=False)
     deleted_on = models.DateTimeField(auto_now_add=True, null=True)
     deleted_by = models.IntegerField(null=True, default=None)
     image = models.CharField(max_length=256,  null=True, default='')
@@ -52,14 +60,21 @@ class user(models.Model):
 
 
 def nameFile(instance, filename):
-    imgname = str(uuid.uuid4().hex)
+    file_name = str(uuid.uuid4().hex)
     filename, file_extension = os.path.splitext(str(filename))
-    return imgname+file_extension
+    return file_name+file_extension
     # return '/'.join(['images', imgname+file_extension])
 
 
-class Image(models.Model):
-    image = models.ImageField(verbose_name=u"file_uploaded",
-                              upload_to=nameFile, null=False, blank=True, default=None)
+# def validate_image(fieldfile_obj):
+#     filesize = fieldfile_obj.size
+#     megabyte_limit = 2.0
+#     if filesize > megabyte_limit*1024*1024:
+#         raise ValidationError("Max file size is %sMB" % str(megabyte_limit))
+
+
+class fileupload(models.Model):
+    filefield = models.FileField(verbose_name=u"file_uploaded",
+                                 upload_to=nameFile, null=False, blank=True, default=None)
     name = models.CharField(
         max_length=256, null=True, default=None)

@@ -19,6 +19,20 @@ class user_registerSerilizer(serializers.HyperlinkedModelSerializer):
                   )
 
 
+class user_getSerilizer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = user
+        # fields = '__all__'
+        fields = ("id", nameof(user.full_name),
+                  nameof(user.phone_number),
+                  nameof(user.email),
+                  nameof(user.password),
+                  nameof(user.image),
+                  nameof(user.eduction),
+                  nameof(user.job_info),
+                  )
+
+
 class verifyotpSerilizer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = user
@@ -36,12 +50,11 @@ class resentotpSerilizer(serializers.HyperlinkedModelSerializer):
                   )
 
 
-class imageSerializer(serializers.HyperlinkedModelSerializer):
+class fileSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = Image
+        model = fileupload
         fields = (
-            nameof(Image.image),
-            # nameof(Image.name)
+            nameof(fileupload.filefield),
         )
 
 

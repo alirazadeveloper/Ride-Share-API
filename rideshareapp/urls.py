@@ -13,11 +13,12 @@ router = routers.SimpleRouter()
 router.register(r'resentotp', resentotp)
 router.register(r'verifyotp', verifyotp)
 router.register(r'signup', userregister)
-router.register(r'fileupload', upload_image)
+router.register(r'fileupload', upload_file)
 router.register(r'login', login)
 router.register(r'forgetpassword', forgetpassword)
 router.register(r'getuser', usergetbyid)
-
+router.register(r'updateprofile', updateprofile)
+router.register(r'deletebyid', deletebyid)
 # specify URL Path for rest_framework
 urlpatterns = [
     path('', include(router.urls)),

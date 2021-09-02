@@ -100,13 +100,13 @@ class userregister(viewsets.ModelViewSet):
 # file upload views
 
 
-class upload_image(viewsets.ModelViewSet):
+class upload_file(viewsets.ModelViewSet):
     http_method_names = ['post']
     permission_classes = [AllowAny, ]
-    queryset = Image.objects.all()
+    queryset = fileupload.objects.all()
     parser_classes = [MultiPartParser, ]
     permission_classes = [AllowAny, ]
-    serializer_class = imageSerializer
+    serializer_class = fileSerializer
 
     def create(self, request):
         try:
@@ -117,13 +117,13 @@ class upload_image(viewsets.ModelViewSet):
 
         if file_serializer.is_valid():
             file_serializer.save()
-            if not file_serializer.data['image']:
+            if not file_serializer.data['filefield']:
                 return Response(sentresponse("false", "file not provided", "").response())
-            img_name = os.path.basename(
-                urlparse(file_serializer.data['image']).path)
+            file_name = os.path.basename(
+                urlparse(file_serializer.data['filefield']).path)
             return Response(sentresponse("true", "file uploaded", {
-                "name": img_name,
-                "image": "http://"+str(request.get_host())+str(file_serializer.data['image'])
+                "name": file_name,
+                "file": "http://"+str(request.get_host())+str(file_serializer.data['filefield'])
             }).response())
         else:
             return Response(sentresponse("false", file_serializer.error_messages, "").response())
@@ -267,10 +267,11 @@ class usergetbyid(viewsets.ModelViewSet):
     http_method_names = ['get']
     permission_classes = [Is_User, ]
     queryset = user.objects.all()
-    serializer_class = user_registerSerilizer
+    serializer_class = user_getSerilizer
 
     def list(self, request):
-        serializer = self.serializer_class(self.queryset, many=True)
+        User = self.queryset.filter(is_deleted=False)
+        serializer = self.serializer_class(User, many=True)
         data = JSONRenderer().render(serializer.data)
         data = JSONParser().parse(io.BytesIO(data))
         res_list = []
@@ -286,7 +287,7 @@ class usergetbyid(viewsets.ModelViewSet):
 
     def retrieve(self, request, pk=None):
         try:
-            user = get_object_or_404(self.queryset, pk=pk)
+            user = self.queryset.get(pk=pk)
         except:
             return Response(sentresponse("false", "invalid id", "").response())
         if user.is_deleted == True:
@@ -300,3 +301,56 @@ class usergetbyid(viewsets.ModelViewSet):
         else:
             data["image"] = ""
         return Response(sentresponse("true", "success", data).response())
+
+
+# update user profile view
+
+
+class updateprofile(viewsets.ModelViewSet):
+    http_method_names = ['put']
+    permission_classes = [Is_User, ]
+    queryset = user.objects.all()
+    serializer_class = user_getSerilizer
+
+    def update(self, request, pk=None):
+        try:
+            user = self.queryset.get(pk=pk)
+        except:
+            return Response(sentresponse("false", "invalid id", "").response())
+        if user.is_deleted == True:
+            return Response(sentresponse("false", "invalid id", "").response())
+        try:
+            User_registerdata = JSONParser().parse(request)
+        except Exception as e:
+            return Response(sentresponse("false", e.args[0], "").response())
+        try:
+            User_registerserializer = self.serializer_class(user,
+                                                            data=User_registerdata, partial=True)
+            if User_registerserializer.is_valid():
+                User_registerserializer.save()
+                return Response(sentresponse("true", "profile updated successfully", "").response())
+            else:
+                return Response(sentresponse("false", User_registerserializer.error_messages, "").response())
+        except Exception as e:
+            return Response(sentresponse("false", e.args[0], "").response())
+
+
+# delete user by id view
+
+class deletebyid(viewsets.ModelViewSet):
+    http_method_names = ['delete']
+    permission_classes = [Is_User, ]
+    queryset = user.objects.all()
+    serializer_class = user_getSerilizer
+
+    def destroy(self, request, pk=None):
+        try:
+            user = self.queryset.get(pk=pk)
+        except:
+            return Response(sentresponse("false", "invalid id", "").response())
+        if user.is_deleted == True:
+            return Response(sentresponse("false", "invalid id", "").response())
+        else:
+            user.is_deleted = True
+            user.save()
+        return Response(sentresponse("true", "user deleted successfully", "").response())
