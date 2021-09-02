@@ -1,7 +1,6 @@
 import io
 from rest_framework.renderers import JSONRenderer
-from django.shortcuts import get_object_or_404
-from rest_framework.parsers import MultiPartParser
+from rest_framework.parsers import MultiPartParser,FileUploadParser,FormParser
 from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.parsers import JSONParser
@@ -104,7 +103,7 @@ class upload_file(viewsets.ModelViewSet):
     http_method_names = ['post']
     permission_classes = [AllowAny, ]
     queryset = fileupload.objects.all()
-    parser_classes = [MultiPartParser, ]
+    parser_classes = [MultiPartParser,FileUploadParser,FormParser,]
     permission_classes = [AllowAny, ]
     serializer_class = fileSerializer
 
@@ -113,21 +112,25 @@ class upload_file(viewsets.ModelViewSet):
             file = request.FILES.get('file_uploaded')
         except Exception as e:
             return Response(sentresponse("false", e.args[0], "").response())
-        file_serializer = self.serializer_class(data=request.data)
-
-        if file_serializer.is_valid():
-            file_serializer.save()
-            if not file_serializer.data['filefield']:
-                return Response(sentresponse("false", "file not provided", "").response())
-            file_name = os.path.basename(
-                urlparse(file_serializer.data['filefield']).path)
-            return Response(sentresponse("true", "file uploaded", {
-                "name": file_name,
-                "file": "http://"+str(request.get_host())+str(file_serializer.data['filefield'])
-            }).response())
-        else:
-            return Response(sentresponse("false", file_serializer.error_messages, "").response())
-
+        try:
+            file_serializer = self.serializer_class(data=request.data)
+        except Exception as e:
+            return Response(sentresponse("false", e.args[0], "").response())
+        try:
+            if file_serializer.is_valid():
+                file_serializer.save()
+                if not file_serializer.data['filefield']:
+                    return Response(sentresponse("false", "file not provided", "").response())
+                file_name = os.path.basename(
+                    urlparse(file_serializer.data['filefield']).path)
+                return Response(sentresponse("true", "file uploaded", {
+                    "name": file_name,
+                    "file": "http://"+str(request.get_host())+str(file_serializer.data['filefield'])
+                }).response())
+            else:
+                return Response(sentresponse("false", file_serializer.error_messages, "").response())
+        except Exception as e:
+                    return Response(sentresponse("false", "file size limit exceeded", "").response())    
 
 # verify otp views
 
@@ -354,3 +357,56 @@ class deletebyid(viewsets.ModelViewSet):
             user.is_deleted = True
             user.save()
         return Response(sentresponse("true", "user deleted successfully", "").response())
+
+
+# car api view
+
+
+class addcar(viewsets.ModelViewSet):
+    http_method_names = ['post']
+    permission_classes = [Is_User, ]
+    queryset = car.objects.all()
+    serializer_class = carSerilizer
+
+    def create(self, request):
+        try:
+            car_data = JSONParser().parse(request)
+        except Exception as e:
+            return Response(sentresponse("false", e.args[0], "").response())
+        try:
+            car_serializer = self.serializer_class(data=car_data)
+        except Exception as e:
+            return Response(sentresponse("false", e.args[0], "").response())
+        if car_serializer.is_valid():
+            car_serializer.save()
+            return Response(sentresponse("true", "car added successfully", "").response())
+        else:
+            return Response(sentresponse("false", car_serializer.error_messages, "").response())
+        
+# update car api view
+
+
+class updatecar(viewsets.ModelViewSet):
+    http_method_names = ['put']
+    permission_classes = [Is_User, ]
+    queryset = car.objects.all()
+    serializer_class = updatecarSerilizer
+
+    def update(self, request, pk=None):
+        try:
+            user = self.queryset.get(pk=pk)
+        except:
+            return Response(sentresponse("false", "invalid id", "").response())
+        try:
+            car_data = JSONParser().parse(request)
+        except Exception as e:
+            return Response(sentresponse("false", e.args[0], "").response())
+        try:
+            car_serializer = self.serializer_class(user,data=car_data, partial=True)
+            if car_serializer.is_valid():
+                car_serializer.save()
+                return Response(sentresponse("true", "car updated successfully", "").response())
+            else:
+                return Response(sentresponse("false", car_serializer.error_messages, "").response())
+        except Exception as e:
+            return Response(sentresponse("false", e.args[0], "").response())

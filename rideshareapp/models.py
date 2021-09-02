@@ -1,11 +1,9 @@
-from django.core.exceptions import ValidationError
 from django.db import models
 
 # Create your models here.
 import uuid
 import os
 
-from django.db.models.fields.files import FileField
 from .auth import generate_access_token
 # Create your models here.
 
@@ -45,6 +43,7 @@ class user(models.Model):
     deleted_by = models.IntegerField(null=True, default=None)
     image = models.CharField(max_length=256,  null=True, default='')
     otp = models.CharField(max_length=256,  null=True, default='')
+    FCMToken = models.CharField(max_length=256,  null=True, default='')
 
     def __str__(self):
         return self.full_name
@@ -63,18 +62,32 @@ def nameFile(instance, filename):
     file_name = str(uuid.uuid4().hex)
     filename, file_extension = os.path.splitext(str(filename))
     return file_name+file_extension
-    # return '/'.join(['images', imgname+file_extension])
-
-
-# def validate_image(fieldfile_obj):
-#     filesize = fieldfile_obj.size
-#     megabyte_limit = 2.0
-#     if filesize > megabyte_limit*1024*1024:
-#         raise ValidationError("Max file size is %sMB" % str(megabyte_limit))
 
 
 class fileupload(models.Model):
     filefield = models.FileField(verbose_name=u"file_uploaded",
-                                 upload_to=nameFile, null=False, blank=True, default=None)
+                                 upload_to=nameFile, null=False,blank=False,  default=None)
     name = models.CharField(
         max_length=256, null=True, default=None)
+
+# car database
+
+class car(models.Model):
+    user_id = models.IntegerField(null=False, default=None,blank=True)
+    conveyance = models.CharField(max_length=256, null=False)
+    model = models.CharField(max_length=256, null=False)
+    seats = models.CharField(max_length=256, null=False)
+    description = models.CharField(max_length=256, null=False)
+    
+    created_on = models.DateTimeField(auto_now_add=True, null=True)
+    is_deleted = models.BooleanField(null=True, default=False)
+  
+   
+    def __str__(self):
+        return self.conveyance
+
+class carpics(models.Model):
+    filename = models.CharField(max_length=256, null=True, default='')
+    pictures = models.ForeignKey(
+        car, on_delete=models.CASCADE, related_name='pictures', null=True, blank=True)
+
