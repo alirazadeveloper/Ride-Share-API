@@ -83,8 +83,12 @@ SWAGGER_SETTINGS = {
             'name': 'Authorization'
         }
     },
+    'USE_SESSION_AUTH': False
 
 }
+
+
+
 REST_FRAMEWORK = {
 
     'DEFAULT_AUTHENTICATION_CLASSES': [
