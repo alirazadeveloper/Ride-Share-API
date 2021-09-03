@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.utils import timezone
 # Create your models here.
 import uuid
 import os
@@ -20,8 +20,7 @@ class token(models.Model):
 # user database
 
 class user(models.Model):
-    full_name = models.CharField(
-        max_length=256, null=False)
+    full_name = models.CharField(max_length=256, null=False)
     email = models.EmailField(
         max_length=70, blank=True, default=None, null=False, unique=True)
     phone_number = models.CharField(
@@ -77,7 +76,6 @@ class car(models.Model):
     conveyance = models.CharField(max_length=256, null=False)
     model = models.CharField(max_length=256, null=False)
     seats = models.CharField(max_length=256, null=False)
-    description = models.CharField(max_length=256, null=False)
     
     created_on = models.DateTimeField(auto_now_add=True, null=True)
     is_deleted = models.BooleanField(null=True, default=False)
@@ -91,3 +89,21 @@ class carpics(models.Model):
     pictures = models.ForeignKey(
         car, on_delete=models.CASCADE, related_name='pictures', null=True, blank=True)
 
+
+
+# trip database
+def currenttime():
+   return timezone.now().time()
+        
+class trip(models.Model):
+    user_id = models.IntegerField(null=False, default=None,blank=True)
+    pickup = models.CharField(max_length=256, null=False)
+    dropup = models.CharField(max_length=256, null=False)
+    date =  models.DateField(blank=True, null=False)
+    time = models.TimeField(blank=True,null=False)
+    
+    created_on = models.TimeField(blank=True,null=True,default=currenttime)
+    is_deleted = models.BooleanField(null=True, default=False)
+    
+
+  

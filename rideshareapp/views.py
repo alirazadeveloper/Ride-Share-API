@@ -1,4 +1,5 @@
 import io
+from django.db.models.fields import CharField, URLField
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import MultiPartParser,FileUploadParser,FormParser
 from django.utils import timezone
@@ -274,7 +275,8 @@ class usergetbyid(viewsets.ModelViewSet):
 
     def list(self, request):
         User = self.queryset.filter(is_deleted=False)
-        serializer = self.serializer_class(User, many=True)
+        page = self.paginate_queryset(User)
+        serializer = self.serializer_class(page, many=True)
         data = JSONRenderer().render(serializer.data)
         data = JSONParser().parse(io.BytesIO(data))
         res_list = []
@@ -391,6 +393,7 @@ class updatecar(viewsets.ModelViewSet):
     permission_classes = [Is_User, ]
     queryset = car.objects.all()
     serializer_class = updatecarSerilizer
+    
 
     def update(self, request, pk=None):
         try:
@@ -410,3 +413,55 @@ class updatecar(viewsets.ModelViewSet):
                 return Response(sentresponse("false", car_serializer.error_messages, "").response())
         except Exception as e:
             return Response(sentresponse("false", e.args[0], "").response())
+
+# add trip view
+
+class addtrip(viewsets.ModelViewSet):
+    http_method_names = ['post']
+    permission_classes = [Is_User, ]
+    queryset = trip.objects.all()
+    serializer_class = tripSerilizer
+
+    def create(self, request):
+        try:
+            trip_data = JSONParser().parse(request)
+        except Exception as e:
+            return Response(sentresponse("false", e.args[0], "").response())
+        try:
+            trip_serializer = self.serializer_class(data=trip_data)
+        except Exception as e:
+            return Response(sentresponse("false", e.args[0], "").response())
+        try:
+            if trip_serializer.is_valid():
+                trip_serializer.save()
+                return Response(sentresponse("true", "trip added successfully", "").response())
+            else:
+                return Response(sentresponse("false", trip_serializer.error_messages, "").response())
+        except Exception as e:
+            return Response(sentresponse("false", e.args[0], "").response())
+
+# get all trip
+
+class gettrip(viewsets.ModelViewSet):
+    http_method_names = ['get']
+    permission_classes = [Is_User, ]
+    queryset = trip.objects.all()
+    serializer_class = gettripSerilizer
+
+    def list(self, request):
+        trip_data = self.queryset.filter(is_deleted=False).order_by("-created_on")
+        page = self.paginate_queryset(trip_data)
+        trip_serializer = self.serializer_class(page, many=True)
+        return Response(sentresponse("true", "success", trip_serializer.data).response())
+    
+    def retrieve(self, request, pk=None):
+        try:
+            trip_data = self.queryset.get(pk=pk)
+        except:
+            return Response(sentresponse("false", "invalid id", "").response())
+        if trip_data.is_deleted == True:
+            return Response(sentresponse("false", "invalid id", "").response())
+        trip_serializer = self.serializer_class(trip_data)
+        return Response(sentresponse("true", "success",trip_serializer.data).response())
+
+

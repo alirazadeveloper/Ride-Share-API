@@ -95,26 +95,47 @@ class carSerilizer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = car
         # fields = '__all__'
-        fields = ("id", "user_id",nameof(car.conveyance),
+        fields = ("id", nameof(car.user_id),
+                  nameof(car.conveyance),
                   nameof(car.model),
                   nameof(car.seats),
-                  nameof(car.description),
                   "pictures"
                   )
     def create(self, validated_data):
         car_pics_data = validated_data.pop('pictures')
-        cardata = car.objects.create(**validated_data)
+        cardata = car.objects.create(**validated_data) 
         for car_pics_data in car_pics_data:
-            carpics.objects.create(
+            carpics.objects.create(                
                 pictures=cardata, **car_pics_data)
-        return cardata
+        return cardata 
 
 
 class updatecarSerilizer(serializers.HyperlinkedModelSerializer):
-
     class Meta:
         model = car
         # fields = '__all__'
         fields = ("id",
                   nameof(car.seats),
+                  )
+
+class tripSerilizer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = trip
+        # fields = '__all__'
+        fields = ("id", nameof(trip.user_id),
+                  nameof(trip.pickup),
+                  nameof(trip.dropup),
+                  nameof(trip.date),
+                  nameof(trip.time),
+                  )
+class gettripSerilizer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = trip
+        # fields = '__all__'
+        fields = ("id", nameof(trip.user_id),
+                  nameof(trip.pickup),
+                  nameof(trip.dropup),
+                  nameof(trip.date),
+                  nameof(trip.time),
+                  nameof(trip.created_on),
                   )

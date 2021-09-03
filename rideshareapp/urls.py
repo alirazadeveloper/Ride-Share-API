@@ -21,6 +21,9 @@ router.register(r'updateprofile', updateprofile)
 router.register(r'deletebyid', deletebyid)
 router.register(r'addcar', addcar)
 router.register(r'updatecar', updatecar)
+router.register(r'addtrip', addtrip)
+router.register(r'gettrip', gettrip)
+
 
 # specify URL Path for rest_framework
 urlpatterns = [
