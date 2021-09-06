@@ -37,7 +37,7 @@ class Is_User(BasePermission):
             request.headers["Authorization"]
         except Exception as e:
             raise Needtoken()
-        if not request.headers["Authorization"]:
+        if not str(request.headers["Authorization"]).strip():
             raise Needtoken()
         auth_token = request.headers["Authorization"]
         global auth_user
@@ -117,21 +117,21 @@ class upload_file(viewsets.ModelViewSet):
             file_serializer = self.serializer_class(data=request.data)
         except Exception as e:
             return Response(sentresponse("false", e.args[0], "").response())
-        try:
-            if file_serializer.is_valid():
-                file_serializer.save()
-                if not file_serializer.data['filefield']:
-                    return Response(sentresponse("false", "file not provided", "").response())
-                file_name = os.path.basename(
-                    urlparse(file_serializer.data['filefield']).path)
-                return Response(sentresponse("true", "file uploaded", {
-                    "name": file_name,
-                    "file": "http://"+str(request.get_host())+str(file_serializer.data['filefield'])
-                }).response())
-            else:
-                return Response(sentresponse("false", file_serializer.error_messages, "").response())
-        except Exception as e:
-                    return Response(sentresponse("false", "file size limit exceeded", "").response())    
+        # try:
+        if file_serializer.is_valid():
+            file_serializer.save()
+            if not file_serializer.data['filefield']:
+                return Response(sentresponse("false", "file not provided", "").response())
+            file_name = os.path.basename(
+                urlparse(file_serializer.data['filefield']).path)
+            return Response(sentresponse("true", "file uploaded", {
+                "name": file_name,
+                "file": "http://"+str(request.get_host())+str(file_serializer.data['filefield'])
+            }).response())
+        else:
+            return Response(sentresponse("false", file_serializer.error_messages, "").response())
+        # except Exception as e:
+        #             return Response(sentresponse("false", "file size limit exceeded", "").response())    
 
 # verify otp views
 
@@ -220,6 +220,11 @@ class login(viewsets.ModelViewSet):
         if len(Password) == 0:
             return Response(sentresponse("false", "invalid password", "").response())
         auth_token, exp = generate_access_token(User[0])
+        if not str(User_logindata["fcm"]).strip():
+            return Response(sentresponse("false", "invalid fcm", "").response())
+        
+        User[0].fcm = User_logindata["fcm"]
+        User[0].save()
         try:
             token.objects.create(
                 user_id=User[0].id, token=auth_token, expire_on=exp)
@@ -463,5 +468,42 @@ class gettrip(viewsets.ModelViewSet):
             return Response(sentresponse("false", "invalid id", "").response())
         trip_serializer = self.serializer_class(trip_data)
         return Response(sentresponse("true", "success",trip_serializer.data).response())
+
+# feedback view
+
+class feedback(viewsets.ModelViewSet):
+    http_method_names = ['post','get']
+    permission_classes = [Is_User, ]
+    queryset = feedback.objects.all()
+    serializer_class = feedbackSerilizer
+    
+    def create(self, request):
+        try:
+            feedback_data = JSONParser().parse(request)
+        except Exception as e:
+            return Response(sentresponse("false", e.args[0], "").response())
+        try:
+            feedback_serializer = self.serializer_class(data=feedback_data)
+        except Exception as e:
+            return Response(sentresponse("false", e.args[0], "").response())
+        if feedback_serializer.is_valid():
+            feedback_serializer.save()
+            return Response(sentresponse("true", "feedback submit successfully", "").response())
+        else:
+            return Response(sentresponse("false", feedback_serializer.error_messages, "").response())
+        
+    def retrieve(self, request, pk=None,*args, **kwargs):
+        try:
+            feedback_data = self.queryset.get(pk=pk)
+        except:
+            return Response(sentresponse("false", "invalid id", "").response())
+        feedback_serializer = self.serializer_class(feedback_data)
+        return Response(sentresponse("true", "success",feedback_serializer.data).response())
+    
+    def list(self, request):
+        feedback_data = self.queryset.all()
+        page = self.paginate_queryset(feedback_data)
+        feedback_serializer = self.serializer_class(page, many=True)
+        return Response(sentresponse("true", "success", feedback_serializer.data).response())
 
 

@@ -23,7 +23,7 @@ router.register(r'addcar', addcar)
 router.register(r'updatecar', updatecar)
 router.register(r'addtrip', addtrip)
 router.register(r'gettrip', gettrip)
-
+router.register(r'feedback', feedback)
 
 # specify URL Path for rest_framework
 urlpatterns = [

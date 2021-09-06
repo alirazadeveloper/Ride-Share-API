@@ -30,7 +30,8 @@ class user(models.Model):
         max_length=256, null=True, default='')
     job_info = models.CharField(
         max_length=256, null=True, default='')
-
+    fcm = models.CharField(
+        max_length=256, null=True, default='')
     created_on = models.DateTimeField(auto_now_add=True, null=True)
     created_by = models.IntegerField(null=True, default=None)
     updated_on = models.DateTimeField(auto_now=True, null=True)
@@ -55,7 +56,6 @@ class user(models.Model):
 
 
 #  image upload database
-
 
 def nameFile(instance, filename):
     file_name = str(uuid.uuid4().hex)
@@ -104,6 +104,14 @@ class trip(models.Model):
     
     created_on = models.TimeField(blank=True,null=True,default=currenttime)
     is_deleted = models.BooleanField(null=True, default=False)
+    
+
+# feedback database
+
+class feedback(models.Model):
+    user_id = models.IntegerField(null=False, default=None,blank=True)
+    message = models.CharField(max_length=256, null=False)
+    stars =  models.IntegerField(null=False, default=None,blank=True)
     
 
   

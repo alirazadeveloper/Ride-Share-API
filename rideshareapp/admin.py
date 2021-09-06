@@ -17,3 +17,12 @@ admin.site.register(
 admin.site.register(
     fileupload
 )
+admin.site.register(
+    car
+)
+admin.site.register(
+    carpics
+)
+admin.site.register(
+    trip
+)

@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-=5^g%dkw(i_4g0ed(kc02@w8(t##jd#)t539=6h(aqd#nxv_m1'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -115,8 +115,7 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10
 }
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_URL = '/media/'  # 'http://myhost:port/media/'
+
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
@@ -167,10 +166,18 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
-
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'static')
+# ]
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+MEDIA_URL = '/media/'  # 'http://myhost:port/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 
 django_heroku.settings(locals())

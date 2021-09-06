@@ -15,12 +15,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from django.urls.conf import include, include
+from django.urls.conf import include
+from django.conf.urls import url
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.static import serve
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -38,4 +40,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include("rideshareapp.urls")),
     path(r'docs/', schema_view.with_ui('swagger', cache_timeout=0)),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
+# ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+from django.views.static import serve as mediaserve
+urlpatterns.append(url(f'^{settings.MEDIA_URL.lstrip("/")}(?P<path>.*)$',
+                     mediaserve, {'document_root': settings.MEDIA_ROOT}))

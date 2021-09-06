@@ -1,7 +1,6 @@
 # import serializer from rest_framework
 from rest_framework import serializers
 from varname import nameof
-# import model from models.py
 from .models import *
 
 # Create a model serializer
@@ -67,6 +66,7 @@ class loginSerilizer(serializers.HyperlinkedModelSerializer):
         fields = ("id",
                   nameof(user.email),
                   nameof(user.password),
+                  nameof(user.fcm),
                   )
 
 
@@ -128,6 +128,17 @@ class tripSerilizer(serializers.HyperlinkedModelSerializer):
                   nameof(trip.date),
                   nameof(trip.time),
                   )
+        
+class feedbackSerilizer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = feedback
+        # fields = '__all__'
+        fields = ("id", nameof(feedback.user_id),
+                  nameof(feedback.message),
+                  nameof(feedback.stars),
+                  )
+        
+        
 class gettripSerilizer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = trip
