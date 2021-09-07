@@ -108,15 +108,20 @@ class carSerilizer(serializers.HyperlinkedModelSerializer):
             carpics.objects.create(                
                 pictures=cardata, **car_pics_data)
         return cardata 
+    
+    def update(self, instance, validated_data):
+        user = instance
+        user.__dict__.update(validated_data)
+        user.save()
+        return user
 
-
-class updatecarSerilizer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = car
-        # fields = '__all__'
-        fields = ("id",
-                  nameof(car.seats),
-                  )
+# class updatecarSerilizer(serializers.HyperlinkedModelSerializer):
+#     class Meta:
+#         model = car
+#         # fields = '__all__'
+#         fields = ("id",
+#                   nameof(car.seats),
+#                   )
 class updatefcmSerilizer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = user

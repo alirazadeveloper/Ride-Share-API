@@ -370,8 +370,8 @@ class deletebyid(viewsets.ModelViewSet):
 # car api view
 
 
-class addcar(viewsets.ModelViewSet):
-    http_method_names = ['post']
+class vehicle(viewsets.ModelViewSet):
+    http_method_names = ['post','put']
     permission_classes = [Is_User, ]
     queryset = car.objects.all()
     serializer_class = carSerilizer
@@ -391,16 +391,6 @@ class addcar(viewsets.ModelViewSet):
         else:
             return Response(sentresponse("false", car_serializer.error_messages, "").response())
         
-# update car api view
-
-
-class updatecar(viewsets.ModelViewSet):
-    http_method_names = ['put']
-    permission_classes = [Is_User, ]
-    queryset = car.objects.all()
-    serializer_class = updatecarSerilizer
-    
-
     def update(self, request, pk=None):
         try:
             user = self.queryset.get(pk=pk)
@@ -419,6 +409,35 @@ class updatecar(viewsets.ModelViewSet):
                 return Response(sentresponse("false", car_serializer.error_messages, "").response())
         except Exception as e:
             return Response(sentresponse("false", e.args[0], "").response())
+        
+# update car api view
+
+
+# class updatecar(viewsets.ModelViewSet):
+#     http_method_names = ['put']
+#     permission_classes = [Is_User, ]
+#     queryset = car.objects.all()
+#     serializer_class = updatecarSerilizer
+    
+
+#     def update(self, request, pk=None):
+#         try:
+#             user = self.queryset.get(pk=pk)
+#         except:
+#             return Response(sentresponse("false", "invalid id", "").response())
+#         try:
+#             car_data = JSONParser().parse(request)
+#         except Exception as e:
+#             return Response(sentresponse("false", e.args[0], "").response())
+#         try:
+#             car_serializer = self.serializer_class(user,data=car_data, partial=True)
+#             if car_serializer.is_valid():
+#                 car_serializer.save()
+#                 return Response(sentresponse("true", "car updated successfully", "").response())
+#             else:
+#                 return Response(sentresponse("false", car_serializer.error_messages, "").response())
+#         except Exception as e:
+#             return Response(sentresponse("false", e.args[0], "").response())
 
 # add trip view
 
