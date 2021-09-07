@@ -43,7 +43,6 @@ class user(models.Model):
     deleted_by = models.IntegerField(null=True, default=None)
     image = models.CharField(max_length=256,  null=True, default='')
     otp = models.CharField(max_length=256,  null=True, default='')
-    FCMToken = models.CharField(max_length=256,  null=True, default='')
 
     def __str__(self):
         return self.full_name
@@ -72,7 +71,7 @@ class fileupload(models.Model):
 # car database
 
 class car(models.Model):
-    user_id = models.IntegerField(null=False, default=None,blank=True)
+    user_id = models.CharField(max_length=256, null=False)
     conveyance = models.CharField(max_length=256, null=False)
     model = models.CharField(max_length=256, null=False)
     seats = models.CharField(max_length=256, null=False)
@@ -96,7 +95,7 @@ def currenttime():
    return timezone.now().time()
         
 class trip(models.Model):
-    user_id = models.IntegerField(null=False, default=None,blank=True)
+    user_id = models.CharField(max_length=256, null=False)
     pickup = models.CharField(max_length=256, null=False)
     dropup = models.CharField(max_length=256, null=False)
     date =  models.DateField(blank=True, null=False)
@@ -109,9 +108,16 @@ class trip(models.Model):
 # feedback database
 
 class feedback(models.Model):
-    user_id = models.IntegerField(null=False, default=None,blank=True)
+    user_id = models.CharField(max_length=256, null=False)
     message = models.CharField(max_length=256, null=False)
-    stars =  models.IntegerField(null=False, default=None,blank=True)
+    stars =  models.CharField(max_length=256, null=False)
     
+# chat database
 
-  
+class chat(models.Model):
+    type = models.CharField(max_length=256, null=False)
+    message = models.CharField(max_length=256, null=False)
+    senderid = models.CharField(max_length=256, null=False)
+    receiverid = models.CharField(max_length=256, null=False)
+    
+    

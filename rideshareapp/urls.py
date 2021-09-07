@@ -24,7 +24,8 @@ router.register(r'updatecar', updatecar)
 router.register(r'addtrip', addtrip)
 router.register(r'gettrip', gettrip)
 router.register(r'feedback', feedback)
-
+router.register(r'sendmessage', sendmessage)
+router.register(r'updatefcm', updatefcm)
 # specify URL Path for rest_framework
 urlpatterns = [
     path('', include(router.urls)),

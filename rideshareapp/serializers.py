@@ -117,6 +117,14 @@ class updatecarSerilizer(serializers.HyperlinkedModelSerializer):
         fields = ("id",
                   nameof(car.seats),
                   )
+class updatefcmSerilizer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = user
+        # fields = '__all__'
+        fields = ("id",
+                  nameof(user.fcm),
+                  )
+
 
 class tripSerilizer(serializers.HyperlinkedModelSerializer):
     class Meta:
@@ -149,4 +157,15 @@ class gettripSerilizer(serializers.HyperlinkedModelSerializer):
                   nameof(trip.date),
                   nameof(trip.time),
                   nameof(trip.created_on),
+                  )
+        
+        
+class chatSerilizer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = chat
+        # fields = '__all__'
+        fields = ("id", nameof(chat.senderid),
+                  nameof(chat.receiverid),
+                  nameof(chat.type),
+                  nameof(chat.message),
                   )

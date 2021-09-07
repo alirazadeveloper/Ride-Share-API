@@ -16,6 +16,7 @@ from .otpwork import otpgen
 from rest_framework.permissions import AllowAny
 import os
 from urllib.parse import urlparse
+from .FCMchat import sendPush
 
 
 class Needtoken(APIException):
@@ -505,5 +506,79 @@ class feedback(viewsets.ModelViewSet):
         page = self.paginate_queryset(feedback_data)
         feedback_serializer = self.serializer_class(page, many=True)
         return Response(sentresponse("true", "success", feedback_serializer.data).response())
+
+
+# chat view
+
+class sendmessage(viewsets.ModelViewSet):
+    """
+    Chat Documentation
+    ---
+        type field must enum
+        - text message : 1
+          voice message : 2
+          image message : 3
+          video message : 4
+          other file message : 5
+    
+    """
+    http_method_names = ['post']
+    permission_classes = [Is_User, ]
+    queryset = chat.objects.all()
+    serializer_class = chatSerilizer
+
+    def create(self, request):
+        try:
+            message_data = JSONParser().parse(request)
+        except Exception as e:
+            return Response(sentresponse("false", e.args[0], "").response())
+        if str(message_data['type'])=='1':
+            User = user.objects.filter(pk=int(message_data['receiverid']))
+            try:
+                sendPush("RideShare",str(message_data['message']),registration_token=str(User[0].fcm))
+            except Exception as e:
+                return Response(sentresponse("false", e.args[0], "").response())
+            try:
+                message_serializer = self.serializer_class(data=message_data)
+            except Exception as e:
+                return Response(sentresponse("false", e.args[0], "").response())
+            if message_serializer.is_valid():
+                message_serializer.save()
+                return Response(sentresponse("true", "message sent successfully", "").response())
+            else:
+                return Response(sentresponse("false", message_serializer.error_messages, "").response())
+        elif str(message_data['type'])=='2':
+            return Response(sentresponse("true", "message sent successfully", "").response())
+        else:
+            return Response(sentresponse("false", "invalid type", "").response())
+        
+
+# update fcm token
+class updatefcm(viewsets.ModelViewSet):
+    http_method_names = ['put']
+    permission_classes = [Is_User, ]
+    queryset = user.objects.all()
+    serializer_class = updatefcmSerilizer
+    
+    def update(self, request, pk=None):
+        try:
+            user = self.queryset.get(pk=pk)
+        except:
+            return Response(sentresponse("false", "invalid id", "").response())
+        try:
+            fcm_data = JSONParser().parse(request)
+        except Exception as e:
+            return Response(sentresponse("false", e.args[0], "").response())
+        try:
+            fcm_serializer = self.serializer_class(user,data=fcm_data, partial=True)
+            if fcm_serializer.is_valid():
+                fcm_serializer.save()
+                return Response(sentresponse("true", "fcm updated successfully", "").response())
+            else:
+                return Response(sentresponse("false", fcm_serializer.error_messages, "").response())
+        except Exception as e:
+            return Response(sentresponse("false", e.args[0], "").response())
+
+
 
 
